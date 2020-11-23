@@ -1,6 +1,6 @@
-package com.solactive.demo.pricemonitor.models;
+package com.solactive.demo.pricemonitor.utils;
 
-import com.solactive.demo.pricemonitor.dto.AggregatedInfo;
+import com.solactive.demo.pricemonitor.dto.PriceStatistics;
 
 
 import lombok.Builder;
@@ -12,22 +12,22 @@ import java.util.Optional;
  *
  * @author Andrey Arefyev
  */
-public class AggregatedInfoAggregator {
+public class GeneralPriceStatisticsAggregator {
     private long counter;
     private double max;
     private double min;
     private double avg;
 
     @Builder
-    private AggregatedInfoAggregator(long counter, double max, double min, double avg) {
+    private GeneralPriceStatisticsAggregator(long counter, double max, double min, double avg) {
         this.counter = counter;
         this.max = max;
         this.min = min;
         this.avg = avg;
     }
 
-    public static AggregatedInfoAggregator create(AggregatedInfo aggregatedInfo) {
-        return AggregatedInfoAggregator.builder()
+    public static GeneralPriceStatisticsAggregator create(PriceStatistics aggregatedInfo) {
+        return GeneralPriceStatisticsAggregator.builder()
                 .avg(aggregatedInfo.getAvg())
                 .counter(aggregatedInfo.getCount())
                 .max(aggregatedInfo.getMax())
@@ -35,7 +35,7 @@ public class AggregatedInfoAggregator {
                 .build();
     }
 
-    public AggregatedInfoAggregator merge(AggregatedInfoAggregator that) {
+    public GeneralPriceStatisticsAggregator merge(GeneralPriceStatisticsAggregator that) {
         if (that.counter == 0) {
             return this;
         }
@@ -51,12 +51,12 @@ public class AggregatedInfoAggregator {
         return this;
     }
 
-    public Optional<AggregatedInfo> get() {
+    public Optional<PriceStatistics> get() {
         if (counter == 0) {
             return Optional.empty();
         }
 
-        var aggregatedInfo = AggregatedInfo.builder()
+        var aggregatedInfo = PriceStatistics.builder()
                 .count(this.counter)
                 .min(this.min)
                 .max(this.max)

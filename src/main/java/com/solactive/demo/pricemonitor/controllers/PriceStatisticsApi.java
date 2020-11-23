@@ -1,8 +1,10 @@
 package com.solactive.demo.pricemonitor.controllers;
 
-import com.solactive.demo.pricemonitor.dto.AggregatedInfo;
+import com.solactive.demo.pricemonitor.dto.PriceStatistics;
 
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,8 +16,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  *
  * @author Andrey Arefyev
  */
-@RequestMapping(StatisticsApi.STATISTICS_ROOT)
-public interface StatisticsApi {
+@RequestMapping(PriceStatisticsApi.STATISTICS_ROOT)
+public interface PriceStatisticsApi {
     String STATISTICS_ROOT = "/statistics";
 
     /**
@@ -23,7 +25,8 @@ public interface StatisticsApi {
      */
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    AggregatedInfo getLastMinuteStats();
+    @Operation(tags = "price-statistics")
+    PriceStatistics getLastMinuteStats();
 
 
     /**
@@ -33,7 +36,8 @@ public interface StatisticsApi {
      */
     @GetMapping("/{instrument}")
     @ResponseStatus(HttpStatus.OK)
-    AggregatedInfo getLastMinuteStatsForInstrument(@PathVariable String instrument);
+    @Operation(tags = "price-statistics", parameters = @Parameter(name = "instrument", description = "Instrument name."))
+    PriceStatistics getLastMinuteStatsForInstrument(@PathVariable String instrument);
 
 
 }

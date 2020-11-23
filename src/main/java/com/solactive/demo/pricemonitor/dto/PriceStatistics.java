@@ -23,7 +23,7 @@ import lombok.ToString;
 @Builder
 @Getter
 @ToString
-public class AggregatedInfo {
+public class PriceStatistics {
 
     /**
      * avg is a double specifying the average amount of all tick prices in the last 60 seconds.

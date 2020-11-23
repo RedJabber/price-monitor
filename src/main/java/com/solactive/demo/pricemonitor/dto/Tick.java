@@ -17,7 +17,7 @@ import lombok.Getter;
  * @author Andrey Arefyev
  */
 @Getter
-public class TickDto {
+public class Tick {
     /**
      * a financial instrument identifier
       */
@@ -33,7 +33,7 @@ public class TickDto {
      */
     private final long timestamp;
 
-    public TickDto(
+    public Tick(
             @JsonProperty("instrument") String instrument,
             @JsonProperty("price") double price,
             @JsonProperty("timestamp") long timestamp) {

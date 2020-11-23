@@ -1,7 +1,7 @@
 package com.solactive.demo.pricemonitor.services;
 
-import com.solactive.demo.pricemonitor.dto.AggregatedInfo;
-import com.solactive.demo.pricemonitor.dto.TickDto;
+import com.solactive.demo.pricemonitor.dto.PriceStatistics;
+import com.solactive.demo.pricemonitor.dto.Tick;
 
 
 import java.time.LocalDateTime;
@@ -13,9 +13,9 @@ import java.time.LocalDateTime;
  */
 public interface TicksService {
 
-    AggregatedInfo getAllTicksStatistics();
+    PriceStatistics getAllTicksStatistics();
 
-    AggregatedInfo getAllTicksStatisticsByInstrument(String instrument);
+    PriceStatistics getAllTicksStatisticsByInstrument(String instrument);
 
-    boolean tryTick(TickDto tick, LocalDateTime now);
+    boolean tryTick(Tick tick, LocalDateTime now);
 }

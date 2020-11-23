@@ -1,6 +1,6 @@
 package com.solactive.demo.pricemonitor.controllers;
 
-import com.solactive.demo.pricemonitor.dto.AggregatedInfo;
+import com.solactive.demo.pricemonitor.dto.PriceStatistics;
 import com.solactive.demo.pricemonitor.services.TicksService;
 
 
@@ -13,19 +13,19 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Andrey Arefyev
  */
 @RestController
-public class StatisticsController implements StatisticsApi {
+public class PriceStatisticsController implements PriceStatisticsApi {
 
     private final TicksService ticksService;
 
-    public StatisticsController(TicksService ticksService) {this.ticksService = ticksService;}
+    public PriceStatisticsController(TicksService ticksService) {this.ticksService = ticksService;}
 
     @Override
-    public AggregatedInfo getLastMinuteStats() {
+    public PriceStatistics getLastMinuteStats() {
         return ticksService.getAllTicksStatistics();
     }
 
     @Override
-    public AggregatedInfo getLastMinuteStatsForInstrument(@PathVariable String instrument) {
+    public PriceStatistics getLastMinuteStatsForInstrument(@PathVariable String instrument) {
         return ticksService.getAllTicksStatisticsByInstrument(instrument);
     }
 }

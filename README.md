@@ -37,3 +37,7 @@ GET /statistics
 ```
 curl -X GET "http://localhost:8080/statistics" -H  "accept: */*"
 ```
+
+## TODO
+ * more description in API.
+ * more tests.

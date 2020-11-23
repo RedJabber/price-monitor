@@ -1,8 +1,10 @@
 package com.solactive.demo.pricemonitor.controllers;
 
-import com.solactive.demo.pricemonitor.dto.TickDto;
+import com.solactive.demo.pricemonitor.dto.Tick;
 
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,8 +24,10 @@ public interface TickApi {
      *
      * @return - 201 - in case of success, 204 - tick is older than 60 seconds.
      */
-    //todo add OpenAPI description
     @PostMapping
-    ResponseEntity<Void> tick(@RequestBody TickDto tick);
+    @Operation(tags = "ticks", description = "Register new tick. No unique check.")
+    @ApiResponse(responseCode = "201", description = "Added successfully")
+    @ApiResponse(responseCode = "204", description = "Tick is outdated and skipped")
+    ResponseEntity<Void> tick(@RequestBody Tick tick);
 
 }

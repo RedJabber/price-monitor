@@ -1,8 +1,8 @@
 package com.solactive.demo.pricemonitor.services;
 
 import com.solactive.demo.pricemonitor.components.TicksContainer;
-import com.solactive.demo.pricemonitor.dto.AggregatedInfo;
-import com.solactive.demo.pricemonitor.dto.TickDto;
+import com.solactive.demo.pricemonitor.dto.PriceStatistics;
+import com.solactive.demo.pricemonitor.dto.Tick;
 
 
 import org.springframework.stereotype.Service;
@@ -18,17 +18,17 @@ public class TicksServiceImpl implements TicksService {
     }
 
     @Override
-    public AggregatedInfo getAllTicksStatistics() {
+    public PriceStatistics getAllTicksStatistics() {
         return ticksContainer.getCommonStatistics();
     }
 
     @Override
-    public AggregatedInfo getAllTicksStatisticsByInstrument(String instrument) {
+    public PriceStatistics getAllTicksStatisticsByInstrument(String instrument) {
         return ticksContainer.getAllTicksStatisticsByInstrument(instrument);
     }
 
     @Override
-    public boolean tryTick(TickDto tick, LocalDateTime topThreshold) {
+    public boolean tryTick(Tick tick, LocalDateTime topThreshold) {
         return ticksContainer.put(tick);
     }
 }

@@ -2,10 +2,10 @@ package com.solactive.demo.pricemonitor.components;
 
 import static java.util.Optional.ofNullable;
 
-import com.solactive.demo.pricemonitor.dto.AggregatedInfo;
-import com.solactive.demo.pricemonitor.dto.TickDto;
-import com.solactive.demo.pricemonitor.models.AggregatedInfoAggregator;
-import com.solactive.demo.pricemonitor.models.AggregatedInfoBuilder;
+import com.solactive.demo.pricemonitor.dto.PriceStatistics;
+import com.solactive.demo.pricemonitor.dto.Tick;
+import com.solactive.demo.pricemonitor.utils.GeneralPriceStatisticsAggregator;
+import com.solactive.demo.pricemonitor.utils.PriceStatisticsAggregator;
 
 
 import lombok.extern.slf4j.Slf4j;
@@ -30,17 +30,17 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class SelfAwareInMemoryTicksContainer implements TicksContainer {
-    public static final AggregatedInfo EMPTY_STATS = AggregatedInfo.builder().build();
-    private Queue<Map<String, AggregatedInfo>> stats = new ConcurrentLinkedQueue<>();
+    public static final PriceStatistics EMPTY_STATS = PriceStatistics.builder().build();
+    private Queue<Map<String, PriceStatistics>> stats = new ConcurrentLinkedQueue<>();
     {
         stats.add(Collections.emptyMap());
     }
 
-    private Queue<AggregatedInfo> commonStats = new ConcurrentLinkedQueue<>();
+    private Queue<PriceStatistics> commonStats = new ConcurrentLinkedQueue<>();
     {
         commonStats.add(EMPTY_STATS);
     }
-    private Queue<TickDto> ticks = new ConcurrentLinkedQueue<>();
+    private Queue<Tick> ticks = new ConcurrentLinkedQueue<>();
     private final long aggregationDuration;
 
     public SelfAwareInMemoryTicksContainer(@Value("${priceaggregator.durationInSeconds:60}") long aggregationDurationInSeconds) {
@@ -48,19 +48,19 @@ public class SelfAwareInMemoryTicksContainer implements TicksContainer {
     }
 
     @Override
-    public AggregatedInfo getCommonStatistics() {
+    public PriceStatistics getCommonStatistics() {
         return ofNullable(commonStats.peek()).orElse(EMPTY_STATS);
     }
 
     @Override
-    public AggregatedInfo getAllTicksStatisticsByInstrument(String instrument) {
+    public PriceStatistics getAllTicksStatisticsByInstrument(String instrument) {
         return ofNullable(stats.peek())
                 .map(m -> m.get(instrument))
                 .orElse(EMPTY_STATS);
     }
 
     @Override
-    public boolean put(TickDto tick) {
+    public boolean put(Tick tick) {
         long rightNow = System.currentTimeMillis();
         long secondStartAligned = getThresholdStart(rightNow);
         if (tick.getTimestamp() < secondStartAligned - aggregationDuration) {
@@ -92,17 +92,17 @@ public class SelfAwareInMemoryTicksContainer implements TicksContainer {
 
     }
 
-    private AggregatedInfo recalculateGeneralStatistics(Map<String, AggregatedInfo> newSpecificStatsSnapshot) {
+    private PriceStatistics recalculateGeneralStatistics(Map<String, PriceStatistics> newSpecificStatsSnapshot) {
         return newSpecificStatsSnapshot.values()
                 .stream()
-                .map(AggregatedInfoAggregator::create)
-                .reduce(AggregatedInfoAggregator::merge)
-                .flatMap(AggregatedInfoAggregator::get)
+                .map(GeneralPriceStatisticsAggregator::create)
+                .reduce(GeneralPriceStatisticsAggregator::merge)
+                .flatMap(GeneralPriceStatisticsAggregator::get)
                 .orElse(EMPTY_STATS);
     }
 
-    private Map<String, AggregatedInfo> recalculateStats4SpecificInstruments(long threshold) {
-        var specificStatistics = new HashMap<String, AggregatedInfoBuilder>();
+    private Map<String, PriceStatistics> recalculateStats4SpecificInstruments(long threshold) {
+        var specificStatistics = new HashMap<String, PriceStatisticsAggregator>();
         this.ticks.stream()
                 .filter(tickDto -> tickDto.getTimestamp() > threshold - aggregationDuration)
                 .filter(tickDto -> tickDto.getPrice() > 0.0)
@@ -115,7 +115,7 @@ public class SelfAwareInMemoryTicksContainer implements TicksContainer {
                                                     .tryMax(price)
                                                     .tryMin(price)
                                                     .updateAvg(price))
-                                            .orElseGet(() -> AggregatedInfoBuilder.create(price)));
+                                            .orElseGet(() -> PriceStatisticsAggregator.create(price)));
                 });
 
         return specificStatistics.entrySet()

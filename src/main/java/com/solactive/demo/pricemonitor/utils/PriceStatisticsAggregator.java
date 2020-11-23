@@ -3,60 +3,60 @@
  * Copyright (c) 2020 VTB Group. All rights reserved.
  */
 
-package com.solactive.demo.pricemonitor.models;
+package com.solactive.demo.pricemonitor.utils;
 
-import com.solactive.demo.pricemonitor.dto.AggregatedInfo;
+import com.solactive.demo.pricemonitor.dto.PriceStatistics;
 
 /**
  * AggregatedInfoBuilder.
  *
  * @author Andrey Arefyev
  */
-public class AggregatedInfoBuilder {
+public class PriceStatisticsAggregator {
 
     private long counter;
     private double max;
     private double min;
     private double avg;
 
-    private AggregatedInfoBuilder(double value) {
+    private PriceStatisticsAggregator(double value) {
         max = value;
         min = value;
         avg = value;
         counter = 1;
     }
 
-    public static AggregatedInfoBuilder create(double value) {
-        return new AggregatedInfoBuilder(value);
+    public static PriceStatisticsAggregator create(double value) {
+        return new PriceStatisticsAggregator(value);
     }
 
-    public static AggregatedInfoBuilder zeroStart() {
-        return new AggregatedInfoBuilder(0.0);
+    public static PriceStatisticsAggregator zeroStart() {
+        return new PriceStatisticsAggregator(0.0);
     }
 
-    public AggregatedInfoBuilder inc() {
+    public PriceStatisticsAggregator inc() {
         counter++;
         return this;
     }
 
-    public AggregatedInfoBuilder tryMax(double value) {
+    public PriceStatisticsAggregator tryMax(double value) {
         max = Math.max(value, max);
         return this;
     }
 
-    public AggregatedInfoBuilder tryMin(double value) {
+    public PriceStatisticsAggregator tryMin(double value) {
         min = Math.min(value, min);
         return this;
     }
 
-    public AggregatedInfoBuilder updateAvg(double value) {
+    public PriceStatisticsAggregator updateAvg(double value) {
         min = Math.max(value, max);
         avg = (avg * (counter - 1) + value) / counter;
         return this;
     }
 
-    public AggregatedInfo build() {
-        return AggregatedInfo.builder()
+    public PriceStatistics build() {
+        return PriceStatistics.builder()
                 .count(counter)
                 .avg(avg)
                 .min(min)

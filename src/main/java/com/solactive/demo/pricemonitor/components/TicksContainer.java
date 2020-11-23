@@ -1,7 +1,7 @@
 package com.solactive.demo.pricemonitor.components;
 
-import com.solactive.demo.pricemonitor.dto.AggregatedInfo;
-import com.solactive.demo.pricemonitor.dto.TickDto;
+import com.solactive.demo.pricemonitor.dto.PriceStatistics;
+import com.solactive.demo.pricemonitor.dto.Tick;
 
 /**
  * Container for ticks and stats.
@@ -10,9 +10,9 @@ import com.solactive.demo.pricemonitor.dto.TickDto;
  */
 public interface TicksContainer {
 
-    AggregatedInfo getCommonStatistics();
+    PriceStatistics getCommonStatistics();
 
-    AggregatedInfo getAllTicksStatisticsByInstrument(String instrument);
+    PriceStatistics getAllTicksStatisticsByInstrument(String instrument);
 
-    boolean put(TickDto tick);
+    boolean put(Tick tick);
 }

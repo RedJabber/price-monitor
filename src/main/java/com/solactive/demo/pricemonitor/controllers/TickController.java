@@ -1,6 +1,6 @@
 package com.solactive.demo.pricemonitor.controllers;
 
-import com.solactive.demo.pricemonitor.dto.TickDto;
+import com.solactive.demo.pricemonitor.dto.Tick;
 import com.solactive.demo.pricemonitor.services.TicksService;
 
 
@@ -24,7 +24,7 @@ public class TickController implements TickApi {
     public TickController(TicksService ticksService) {this.ticksService = ticksService;}
 
     @Override
-    public ResponseEntity<Void> tick(@RequestBody TickDto tick) {
+    public ResponseEntity<Void> tick(@RequestBody Tick tick) {
         return ticksService.tryTick(tick, LocalDateTime.now())
                ? ResponseEntity.status(HttpStatus.CREATED).build()
                : ResponseEntity.status(HttpStatus.NO_CONTENT).build();
