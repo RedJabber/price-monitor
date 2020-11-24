@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext
+//@DirtiesContext
 class PriceStatisticsApiTest {
 
     @Autowired

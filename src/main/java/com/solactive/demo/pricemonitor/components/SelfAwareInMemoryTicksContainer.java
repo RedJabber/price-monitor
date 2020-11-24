@@ -14,7 +14,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.AbstractMap;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -31,33 +30,34 @@ import java.util.stream.Collectors;
 @Component
 public class SelfAwareInMemoryTicksContainer implements TicksContainer, Recalculatable {
     public static final PriceStatistics EMPTY_STATS = PriceStatistics.builder().build();
-    private Queue<Map<String, PriceStatistics>> stats = new ConcurrentLinkedQueue<>();
-    {
-        stats.add(Collections.emptyMap());
-    }
 
-    private Queue<PriceStatistics> commonStats = new ConcurrentLinkedQueue<>();
-    {
-        commonStats.add(EMPTY_STATS);
-    }
-    private Queue<Tick> ticks = new ConcurrentLinkedQueue<>();
+    private final ConcurrentContainer<PriceStatistics> generalPriceStatisticsContainer;
+    private final ConcurrentContainer<Map<String, PriceStatistics>> specificPricesStatisticsContainer;
+
+    private final Queue<Tick> ticks = new ConcurrentLinkedQueue<>();
+
     private final long aggregationDuration;
     private final TimeStrategy timeStrategy;
 
-    public SelfAwareInMemoryTicksContainer(@Value("${priceaggregator.durationInSeconds:60}") long aggregationDurationInSeconds,
+    public SelfAwareInMemoryTicksContainer(
+            @Value("${priceaggregator.durationInSeconds:60}") long aggregationDurationInSeconds,
+            ConcurrentContainer<PriceStatistics> generalPriceStatisticsContainer,
+            ConcurrentContainer<Map<String, PriceStatistics>> specificPricesStatisticsContainer,
             TimeStrategy timeStrategy) {
+        this.generalPriceStatisticsContainer = generalPriceStatisticsContainer;
         this.aggregationDuration = TimeUnit.SECONDS.toMillis(aggregationDurationInSeconds);
+        this.specificPricesStatisticsContainer = specificPricesStatisticsContainer;
         this.timeStrategy = timeStrategy;
     }
 
     @Override
     public PriceStatistics getCommonStatistics() {
-        return ofNullable(commonStats.peek()).orElse(EMPTY_STATS);
+        return generalPriceStatisticsContainer.get();
     }
 
     @Override
     public PriceStatistics getAllTicksStatisticsByInstrument(String instrument) {
-        return ofNullable(stats.peek())
+        return ofNullable(specificPricesStatisticsContainer.get())
                 .map(m -> m.get(instrument))
                 .orElse(EMPTY_STATS);
     }
@@ -87,10 +87,8 @@ public class SelfAwareInMemoryTicksContainer implements TicksContainer, Recalcul
         var newSpecificStatsSnapshot = recalculateStats4SpecificInstruments(threshold);
         var newCommonAggregation = recalculateGeneralStatistics(newSpecificStatsSnapshot);
 
-        stats.add(newSpecificStatsSnapshot);
-        stats.poll();
-        commonStats.add(newCommonAggregation);
-        commonStats.poll();
+        specificPricesStatisticsContainer.set(newSpecificStatsSnapshot);
+        generalPriceStatisticsContainer.set(newCommonAggregation);
 
         ticks.removeIf(tickDto -> tickDto.getTimestamp() < threshold - aggregationDuration);
 
