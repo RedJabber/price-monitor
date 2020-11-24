@@ -30,15 +30,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * @see PriceStatisticsApi
+ * @see PriceStatisticsApi#getLastMinuteStats()
+ * @see PriceStatisticsApi#getLastMinuteStatsForInstrument(String)
  * @see TickApi
  */
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@DirtiesContext
 class PriceStatisticsApiTest {
 
     @Autowired
@@ -170,7 +174,66 @@ class PriceStatisticsApiTest {
         assertThat(statisticsResponseInterval1.getBody().getMin()).isEqualTo(minInstrument0Price);
         assertThat(statisticsResponseInterval1.getBody().getMax()).isEqualTo(maxInstrument0Price);
 
+    }
 
+    @Test
+    @DirtiesContext
+    void testCalcMassAggregation() {
+        int pricesLength = 100;
+
+        var prices = new ArrayList<Double>(pricesLength);
+        for (int i = 0; i < pricesLength; i++) {
+            prices.add(RandomUtils.nextDouble());
+        }
+        when(timeStrategy.getCurrentTimestampMillis()).thenAnswer(inv -> currentTimeMillis());
+
+        String instrument = randomAlphanumeric(6);
+        int instrument0Count = RandomUtils.nextInt(pricesLength/2, pricesLength);
+        var specificPrices = prices.subList(0, instrument0Count);
+        fillSpecificInstrumentTicks(instrument, specificPrices);
+        fillOtherTicks(prices, instrument0Count);
+
+        var generalAvg = prices.stream().reduce(Double::sum).map(v->v/pricesLength).get();
+
+        ticksContainer.recalculate();
+
+        var statisticsResponse = getStatistics();
+        assertThat(statisticsResponse.getBody()).isNotNull();
+        assertThat(statisticsResponse.getBody().getCount()).isEqualTo(pricesLength);
+        assertThat(statisticsResponse.getBody().getAvg()).isEqualTo(generalAvg);
+        assertThat(statisticsResponse.getBody().getMin())
+                .isEqualTo(prices.stream().min(Double::compareTo).get());
+        assertThat(statisticsResponse.getBody().getMax())
+                .isEqualTo(prices.stream().max(Double::compareTo).get());
+
+        var specificAvg = specificPrices.stream().reduce(Double::sum).get() / instrument0Count;
+
+        var specificStatisticsResponse = getSpecificStatistics(instrument);
+        assertThat(specificStatisticsResponse.getBody()).isNotNull();
+        assertThat(specificStatisticsResponse.getBody().getCount()).isEqualTo(instrument0Count);
+        assertThat(specificStatisticsResponse.getBody().getAvg()).isEqualTo(specificAvg);
+        assertThat(specificStatisticsResponse.getBody().getMin())
+                .isEqualTo(specificPrices.stream().min(Double::compareTo).get());
+        assertThat(specificStatisticsResponse.getBody().getMax())
+                .isEqualTo(specificPrices.stream().max(Double::compareTo).get());
+
+    }
+
+    private void fillOtherTicks(ArrayList<Double> prices, int instrument0Count) {
+        prices.stream().skip(instrument0Count)
+                .forEachOrdered(price->{
+                    long timestampInAcceptedRange =
+                            timeStrategy.getCurrentTimestampMillis() - RandomUtils.nextLong(10, (acceptedDurationInSeconds - 2) * 1000);
+                    postTick(new Tick(randomAlphanumeric(7), price, timestampInAcceptedRange));
+                });
+    }
+
+    private void fillSpecificInstrumentTicks(String instrument, List<Double> prices) {
+        prices.stream().forEachOrdered(price -> {
+            long timestampInAcceptedRange =
+                    timeStrategy.getCurrentTimestampMillis() - RandomUtils.nextLong(10, (acceptedDurationInSeconds - 2) * 1000);
+            postTick(new Tick(instrument, price, timestampInAcceptedRange));
+        });
     }
 
 
