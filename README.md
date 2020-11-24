@@ -3,7 +3,15 @@ In memory solution for one minute price statistics aggregation.
 
 # Run from maven
 ```
- mvn spring-boot:run
+mvn spring-boot:run
+```
+# Build docker image
+```
+docker build -t price-monitor:0.0.1 .
+```                                   
+or build and run
+``` 
+docker build -t price-monitor:0.0.1 . && docker run -p 80:8080 price-monitor:0.0.1
 ```
 # API
 ## Swagger location
