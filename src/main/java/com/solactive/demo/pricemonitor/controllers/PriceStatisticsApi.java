@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  *
  * @author Andrey Arefyev
  */
-@RequestMapping(PriceStatisticsApi.STATISTICS_ROOT)
+@RequestMapping(PriceStatisticsApi.ROOT_PATH)
 public interface PriceStatisticsApi {
-    String STATISTICS_ROOT = "/statistics";
+    String ROOT_PATH = "/statistics";
 
     /**
      * This is the endpoint with aggregated statistics for all ticks across all instruments.

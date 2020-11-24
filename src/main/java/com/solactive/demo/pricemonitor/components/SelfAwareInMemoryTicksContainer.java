@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
-public class SelfAwareInMemoryTicksContainer implements TicksContainer {
+public class SelfAwareInMemoryTicksContainer implements TicksContainer, Recalculatable {
     public static final PriceStatistics EMPTY_STATS = PriceStatistics.builder().build();
     private Queue<Map<String, PriceStatistics>> stats = new ConcurrentLinkedQueue<>();
     {
@@ -42,9 +42,12 @@ public class SelfAwareInMemoryTicksContainer implements TicksContainer {
     }
     private Queue<Tick> ticks = new ConcurrentLinkedQueue<>();
     private final long aggregationDuration;
+    private final TimeStrategy timeStrategy;
 
-    public SelfAwareInMemoryTicksContainer(@Value("${priceaggregator.durationInSeconds:60}") long aggregationDurationInSeconds) {
+    public SelfAwareInMemoryTicksContainer(@Value("${priceaggregator.durationInSeconds:60}") long aggregationDurationInSeconds,
+            TimeStrategy timeStrategy) {
         this.aggregationDuration = TimeUnit.SECONDS.toMillis(aggregationDurationInSeconds);
+        this.timeStrategy = timeStrategy;
     }
 
     @Override
@@ -61,7 +64,7 @@ public class SelfAwareInMemoryTicksContainer implements TicksContainer {
 
     @Override
     public boolean put(Tick tick) {
-        long rightNow = System.currentTimeMillis();
+        long rightNow = timeStrategy.getCurrentTimestampMillis();
         long secondStartAligned = getThresholdStart(rightNow);
         if (tick.getTimestamp() < secondStartAligned - aggregationDuration) {
             return false;
@@ -75,10 +78,11 @@ public class SelfAwareInMemoryTicksContainer implements TicksContainer {
     }
 
 
+    @Override
     @Scheduled(cron = "${priceaggregator.recalculationSchedule}")
-    synchronized void recalculate() {
+    public synchronized void recalculate() {
 
-        long threshold = getThresholdStart(System.currentTimeMillis());
+        long threshold = getThresholdStart(timeStrategy.getCurrentTimestampMillis());
 
         var newSpecificStatsSnapshot = recalculateStats4SpecificInstruments(threshold);
         var newCommonAggregation = recalculateGeneralStatistics(newSpecificStatsSnapshot);

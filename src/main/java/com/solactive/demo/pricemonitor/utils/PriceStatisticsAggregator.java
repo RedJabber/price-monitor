@@ -50,7 +50,6 @@ public class PriceStatisticsAggregator {
     }
 
     public PriceStatisticsAggregator updateAvg(double value) {
-        min = Math.max(value, max);
         avg = (avg * (counter - 1) + value) / counter;
         return this;
     }

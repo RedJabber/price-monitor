@@ -4,6 +4,7 @@ import com.solactive.demo.pricemonitor.dto.PriceStatistics;
 import com.solactive.demo.pricemonitor.services.TicksService;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Andrey Arefyev
  */
+@Slf4j
 @RestController
 public class PriceStatisticsController implements PriceStatisticsApi {
 
@@ -26,6 +28,7 @@ public class PriceStatisticsController implements PriceStatisticsApi {
 
     @Override
     public PriceStatistics getLastMinuteStatsForInstrument(@PathVariable String instrument) {
+        log.info("instrument is {}", instrument);
         return ticksService.getAllTicksStatisticsByInstrument(instrument);
     }
 }

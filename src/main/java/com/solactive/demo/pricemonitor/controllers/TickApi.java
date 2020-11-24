@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Andrey Arefyev
  */
 
-@RequestMapping(TickApi.ROOT)
+@RequestMapping(TickApi.ROOT_PATH)
 public interface TickApi {
-    String ROOT = "/ticks";
+    String ROOT_PATH = "/ticks";
 
     /**
      *
